@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Responsive Quiz App</title>
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* Quiz-specific CSS */
+  body { font-family: Arial, sans-serif; margin:0; padding:0; background:#f4f4f4; }
+  .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+  .screen { display: none; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; }
+  .screen.active { display: flex; }
+  h1, h2 { text-align: center; }
+  .button { padding: 10px 20px; margin: 10px; background:#007bff; color:white; border:none; cursor:pointer; border-radius:5px; }
+  .button:hover { background:#0056b3; }
+  .secondary { background: gray; }
+  .card { background:white; padding:20px; border-radius:8px; box-shadow:0 2px 5px rgba(0,0,0,0.2); width: 100%; margin-top: 20px; }
+  .choices button { display:block; width:100%; margin:5px 0; text-align:left; }
+  .actions { margin-top: 10px; }
+  @media (max-width: 600px){ .container{padding:10px;} }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Start Screen -->
+  <section id="start-screen" class="screen active">
+    <h1>Quick Quiz</h1>
+    <p>Test your knowledge!</p>
+    <button id="start-btn" class="button">Start Quiz</button>
+  </section>
+
+  <!-- Quiz Screen -->
+  <section id="quiz-screen" class="screen">
+    <div class="card">
+      <h2 id="question-text">Question Text</h2>
+      <div id="choices" class="choices"></div>
+      <div class="actions">
+        <button id="next-btn" class="button secondary hidden">Next</button>
+      </div>
+      <p id="feedback" style="margin-top:10px;font-weight:bold;"></p>
+    </div>
+    <p>Score: <span id="score-val">0</span> / <span id="total-questions">5</span></p>
+  </section>
+
+  <!-- Result Screen -->
+  <section id="result-screen" class="screen">
+    <div class="card">
+      <h2>Your Score</h2>
+      <p>You scored <span id="final-score">0</span> / <span id="total-questions-result">5</span></p>
+      <p id="final-message"></p>
+      <button id="retry-btn" class="button">Try Again</button>
+      <button id="home-btn" class="button secondary">Home</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const questions = [
+  { q:"The sky is blue.", choices:["True","False"], answer:"True" },
+  { q:"2 + 2 = 5", choices:["True","False"], answer:"False" },
+  { q:"HTML stands for Hyper Text Markup Language", choices:["True","False"], answer:"True" },
+  { q:"JavaScript is the same as Java", choices:["True","False"], answer:"False" },
+  { q:"The earth revolves around the sun", choices:["True","False"], answer:"True" }
+];
+
+let currentQ = 0;
+let score = 0;
+
+const startScreen = document.getElementById('start-screen');
+const quizScreen = document.getElementById('quiz-screen');
+const resultScreen = document.getElementById('result-screen');
+const startBtn = document.getElementById('start-btn');
+const nextBtn = document.getElementById('next-btn');
+const retryBtn = document.getElementById('retry-btn');
+const homeBtn = document.getElementById('home-btn');
+const questionText = document.getElementById('question-text');
+const choicesDiv = document.getElementById('choices');
+const feedback = document.getElementById('feedback');
+const scoreVal = document.getElementById('score-val');
+const finalScore = document.getElementById('final-score');
+const finalMessage = document.getElementById('final-message');
+
+startBtn.addEventListener('click', startQuiz);
+nextBtn.addEventListener('click', nextQuestion);
+retryBtn.addEventListener('click', startQuiz);
+homeBtn.addEventListener('click', () => {
+  resultScreen.classList.remove('active');
+  startScreen.classList.add('active');
+});
+
+function startQuiz(){
+  score = 0;
+  currentQ = 0;
+  scoreVal.textContent = score;
+  startScreen.classList.remove('active');
+  resultScreen.classList.remove('active');
+  quizScreen.classList.add('active');
+  loadQuestion();
+}
+
+function loadQuestion(){
+  feedback.textContent = '';
+  nextBtn.classList.add('hidden');
+  const q = questions[currentQ];
+  questionText.textContent = q.q;
+  choicesDiv.innerHTML = '';
+  q.choices.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.textContent = choice;
+    btn.classList.add('button');
+    btn.addEventListener('click', () => selectAnswer(choice));
+    choicesDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(choice){
+  const correct = questions[currentQ].answer;
+  if(choice === correct){
+    feedback.textContent = 'Correct!';
+    score++;
+    scoreVal.textContent = score;
+  } else {
+    feedback.textContent = 'Wrong!';
+  }
+  nextBtn.classList.remove('hidden');
+  Array.from(choicesDiv.children).forEach(btn => btn.disabled = true);
+}
+
+function nextQuestion(){
+  currentQ++;
+  if(currentQ < questions.length){
+    loadQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function showResult(){
+  quizScreen.classList.remove('active');
+  resultScreen.classList.add('active');
+  finalScore.textContent = score;
+  document.getElementById('total-questions-result').textContent = questions.length;
+  if(score === questions.length){
+    finalMessage.textContent = "Excellent! Great Job!";
+  } else if(score >= questions.length/2){
+    finalMessage.textContent = "Good effort! You can do even better!";
+  } else {
+    finalMessage.textContent = "Try Again! Keep learning!";
+  }
+}
+</script>
+
+</body>
+</html>
